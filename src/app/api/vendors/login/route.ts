@@ -14,10 +14,14 @@ export async function POST(request:NextRequest) {
         if(!vendor){
             return NextResponse.json({error:"Vendor does not exist",success:false},{status:400})
         }
+
         const validPassword = await bcryptjs.compare(password,vendor.password)
         if(!validPassword){
             return NextResponse.json({error:"Invalid Password",success:false},{status:400})
         }
+        if(vendor.isVerified === false) {
+            return NextResponse.json({ message: "Vendor is not verified",status: false }, { status: 401 });
+        }
         const tokenData = {
             id:vendor._id,
             username:vendor.username,

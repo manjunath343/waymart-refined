@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import TermsAndConditions from "../../TermsandConditions/TermsAndConditions";
@@ -27,8 +28,11 @@ const SignupBusiness: React.FC = () => {
   const [formError, setFormError] = useState("");
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // console.log("Name:", e.target.name, "Value:", e.target.value);
+    console.log(formData);
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -36,10 +40,59 @@ const SignupBusiness: React.FC = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.success("Signup Successful!");
+    
+    // const formData = new FormData(e.currentTarget);
+    // // console.log(formData.get("name"));
+    // console.log(formData);
+    // const vendorData = {
+    //     name: formData.get("name"), 
+    //     email: formData.get("email"),
+    //     password: formData.get("password"),
+    //     phone: formData.get("phone"),
+    //     address: formData.get("address"),
+    //     businessName: formData.get("businessName"),
+    //     businessType: formData.get("businessType"),
+    //     PAN: formData.get("PAN"),
+    //     proofOfBusiness: formData.get("proofOfBusiness"),
+    // };
+    // console.log(formData);
+    const vendorData = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      phone: formData.phone,
+      address: formData.address,
+      businessName: formData.businessName,
+      businessType: formData.businessType,
+      PAN: formData.panCard, // Ensure the key matches your backend
+      proofOfBusiness: "ok", // Add this if needed
   };
+  console.log(vendorData);
+
+    try {
+        // console.log("Submitting form data:", vendorData);
+        const response = await fetch("/api/vendors/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(vendorData),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            toast.success("Vendor registered successfully!");
+            router.push("/login");
+        } else {
+            toast.error(`Error: ${result.error}`);
+        }
+    } catch (error) {
+        console.error("Error submitting form:", error);
+        toast.error("Something went wrong. Please try again.");
+    }
+};
 
   const getLocation = async () => {
     try {
@@ -56,6 +109,7 @@ const SignupBusiness: React.FC = () => {
 
   return (
     <div className="flex justify-center">
+      <ToastContainer/>
       <motion.div className="p-2 rounded-lg w-full max-w-lg text-[#2B2024]" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5, type: "spring" }}>
         <h2 className="text-2xl font-bold text-center mb-4 text-[#FD0054]">Register Your Business</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -63,9 +117,10 @@ const SignupBusiness: React.FC = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-bold">Personal & Residence Info</h3>
               <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} className="w-full p-3 border rounded-lg" required />
+              {/* {console.log(formData)}  */}
               <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="w-full p-3 border rounded-lg" required />
               <input type="text" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} className="w-full p-3 border rounded-lg" required />
-              <input type="text" name="raddress" placeholder="Your residential addresss" value={formData.Raddress} onChange={handleChange} className="w-full p-3 border rounded-lg" required />
+              <input type="text" name="Raddress" placeholder="Your residential addresss" value={formData.Raddress} onChange={handleChange} className="w-full p-3 border rounded-lg" required />
               <div className="flex justify-between">
                 <span></span>
                 <button type="button" onClick={() => setCurrentStep(2)} className=" px-3 py-1 bg-[#FD0054] text-white rounded-lg">Next</button>

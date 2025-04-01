@@ -42,11 +42,40 @@ const LoginBusiness = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (validateForm()) {
-      toast.success("Login Successful!");
-      router.push("/dashboard");
+      try {
+        const response = await fetch("/api/vendors/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
+        
+         if (response.status === 400) {
+          toast.error("Invalid email or password");
+          return;
+        }
+        else if (response.status === 401) {
+          toast.error("Approval is in process. Please wait for admin approval.");
+          return;
+        }
+
+        const data = await response.json();
+        
+        if (data.error) {
+          toast.error(data.error +"hello");
+        } else {
+          toast.success("Login successful!");
+          router.push("/vendor-profile"); // Redirect to home page after successful login
+        }
+      } catch (error) {
+        console.error("Error during login:", error);
+        toast.error("An error occurred while logging in. Please try again.");
+      }
     } else {
       toast.error(errors.email || errors.password || errors.passKey || "Invalid login details");
     }
